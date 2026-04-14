@@ -32,6 +32,7 @@ import { InMemoryOutboxRepository } from '../shared/infrastructure/outbox/in-mem
 import { KafkaBrokerAdapter } from '../shared/infrastructure/broker/kafka-broker-adapter.js';
 import { OutboxRelayWorker } from '../shared/application/outbox/outbox-relay-worker.js';
 
+
 export const buildContainer = () => {
   const eventStore = new InMemoryEventStore();
   const eventBus = new InProcessEventBus();
@@ -44,6 +45,7 @@ export const buildContainer = () => {
   const outboxRepository = new InMemoryOutboxRepository();
   const externalBroker = new KafkaBrokerAdapter();
   const outboxWorker = new OutboxRelayWorker(outboxRepository, externalBroker);
+
 
   const invoiceProjection = new InvoiceProjectionHandler(invoiceReadRepo);
   const walletProjection = new WalletProjectionHandler(walletProjectionRepo);
@@ -60,6 +62,9 @@ export const buildContainer = () => {
         createdAt: new Date().toISOString()
       });
     });
+
+    eventBus.subscribe(eventType, (evt) => invoiceProjection.onEvent(evt));
+
   });
 
   ['WalletOpened', 'FundsDeposited', 'FundsReserved', 'PaymentSettled'].forEach((eventType) => {
@@ -69,15 +74,21 @@ export const buildContainer = () => {
   return {
     eventStore,
     eventBus,
+
     telemetry,
     tenantContextStore,
     outboxWorker,
+
     repositories: {
       customerRepo,
       invoiceReadRepo,
       walletRepo,
+
       walletProjectionRepo,
       outboxRepository
+
+      walletProjectionRepo
+
     },
     commands: {
       createCustomer: new CreateCustomerHandler(customerRepo),

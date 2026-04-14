@@ -4,7 +4,9 @@ import swaggerUi from '@fastify/swagger-ui';
 import { z } from 'zod';
 import { DomainError, NotFoundError } from '../../shared/domain/errors.js';
 import type { AppContainer } from '../../bootstrap/container.js';
+
 import { authAndTenantMiddleware } from './middleware/auth.js';
+
 
 const customerSchema = z.object({
   customerId: z.string(),
@@ -47,6 +49,7 @@ const walletMutationSchema = z.object({
 export const buildApp = async (container: AppContainer) => {
   const app = Fastify();
 
+
   app.addHook('preHandler', authAndTenantMiddleware(container.tenantContextStore));
   app.addHook('onRequest', async (request, _reply) => {
     const span = container.telemetry.tracer.startSpan('http.request', {
@@ -65,6 +68,7 @@ export const buildApp = async (container: AppContainer) => {
       method: request.method
     });
   });
+
 
   await app.register(swagger, {
     openapi: { info: { title: 'Shine Demo API', version: '1.0.0' } }

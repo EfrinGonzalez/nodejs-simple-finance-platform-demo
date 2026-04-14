@@ -71,7 +71,9 @@ These diagrams show:
 - [ADR-002 Selective event sourcing](docs/adr/ADR-002-selective-event-sourcing.md)
 - [ADR-003 In-process bus](docs/adr/ADR-003-in-process-bus.md)
 - [ADR-004 Eventually consistent projections](docs/adr/ADR-004-eventual-consistency-projections.md)
+
 - [ADR-005 Production hardening scaffolding](docs/adr/ADR-005-production-hardening-roadmap.md)
+
 
 ## Run
 ```bash
@@ -132,3 +134,4 @@ docs/{adr,diagrams}
 - Added external broker adapter interface with Kafka and RabbitMQ adapter stubs for migration from in-process bus.
 - Added request middleware for API key auth + tenant context headers (`x-api-key`, `x-tenant-id`) to demonstrate authn/authz + tenant isolation boundaries.
 - Added telemetry interfaces and console implementations for tracing/metrics hooks on HTTP request lifecycle.
+

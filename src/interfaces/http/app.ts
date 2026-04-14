@@ -50,7 +50,7 @@ export const buildApp = async (container: AppContainer) => {
   const app = Fastify();
 
 
-  app.addHook('preHandler', authAndTenantMiddleware(container.tenantContextStore));
+  //app.addHook('preHandler', authAndTenantMiddleware(container.tenantContextStore));
   app.addHook('onRequest', async (request, _reply) => {
     const span = container.telemetry.tracer.startSpan('http.request', {
       method: request.method,

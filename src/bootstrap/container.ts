@@ -87,7 +87,6 @@ export const buildContainer = () => {
       walletProjectionRepo,
       outboxRepository
 
-      walletProjectionRepo
 
     },
     commands: {

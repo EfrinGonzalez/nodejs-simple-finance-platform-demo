@@ -12,7 +12,7 @@
     "lint": "tsc -p tsconfig.json --noEmit",
     "seed": "tsx src/scripts/seed-demo.ts",
     "rebuild:projections": "tsx src/scripts/rebuild-projections.ts",
-    "worker:outbox": "tsx src/scripts/outbox-worker.ts"
+    "worker:outbox": "tsx src/scripts/outbox-worker.ts",
     "rebuild:projections": "tsx src/scripts/rebuild-projections.ts"
   },
   "dependencies": {

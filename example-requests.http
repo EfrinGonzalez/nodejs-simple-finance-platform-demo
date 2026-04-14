@@ -1,0 +1,29 @@
+### create customer
+POST http://localhost:3000/customers
+Content-Type: application/json
+
+{ "customerId":"cust-1", "businessId":"biz-1", "name":"ACME", "email":"ops@acme.test" }
+
+### create invoice
+POST http://localhost:3000/invoices
+Content-Type: application/json
+
+{ "invoiceId":"inv-1", "businessId":"biz-1", "customerId":"cust-1", "amountCents":42000, "currency":"EUR", "dueDate":"2026-05-10" }
+
+### issue invoice
+POST http://localhost:3000/invoices/issue
+Content-Type: application/json
+
+{ "invoiceId":"inv-1" }
+
+### register payment
+POST http://localhost:3000/invoices/payments
+Content-Type: application/json
+
+{ "invoiceId":"inv-1", "paymentId":"pay-1", "amountCents":42000, "idempotencyKey":"idem-payment-1" }
+
+### wallet flow
+POST http://localhost:3000/wallets
+Content-Type: application/json
+
+{ "walletId":"w-1", "businessId":"biz-1", "currency":"EUR" }

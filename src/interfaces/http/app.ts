@@ -5,6 +5,9 @@ import { z } from 'zod';
 import { DomainError, NotFoundError } from '../../shared/domain/errors.js';
 import type { AppContainer } from '../../bootstrap/container.js';
 
+import { authAndTenantMiddleware } from './middleware/auth.js';
+
+
 const customerSchema = z.object({
   customerId: z.string(),
   businessId: z.string(),
@@ -45,6 +48,27 @@ const walletMutationSchema = z.object({
 
 export const buildApp = async (container: AppContainer) => {
   const app = Fastify();
+
+
+  app.addHook('preHandler', authAndTenantMiddleware(container.tenantContextStore));
+  app.addHook('onRequest', async (request, _reply) => {
+    const span = container.telemetry.tracer.startSpan('http.request', {
+      method: request.method,
+      url: request.url
+    });
+    (request as { _spanEnd?: () => void })._spanEnd = span.end;
+    container.telemetry.metrics.increment('http.requests_total', 1, {
+      method: request.method
+    });
+  });
+
+  app.addHook('onResponse', async (request, reply) => {
+    (request as { _spanEnd?: () => void })._spanEnd?.();
+    container.telemetry.metrics.observe('http.response_status', reply.statusCode, {
+      method: request.method
+    });
+  });
+
 
   await app.register(swagger, {
     openapi: { info: { title: 'Shine Demo API', version: '1.0.0' } }

@@ -26,6 +26,12 @@ import {
 } from '../wallet/application/handlers/wallet-query-handlers.js';
 import { InMemoryWalletProjectionRepository } from '../wallet/readmodel/in-memory-wallet-projection-repository.js';
 import { WalletProjectionHandler } from '../wallet/readmodel/wallet-projection-handler.js';
+import { TenantContextStore } from '../shared/security/tenant-context.js';
+import { ConsoleTelemetry } from '../shared/observability/console-telemetry.js';
+import { InMemoryOutboxRepository } from '../shared/infrastructure/outbox/in-memory-outbox-repository.js';
+import { KafkaBrokerAdapter } from '../shared/infrastructure/broker/kafka-broker-adapter.js';
+import { OutboxRelayWorker } from '../shared/application/outbox/outbox-relay-worker.js';
+
 
 export const buildContainer = () => {
   const eventStore = new InMemoryEventStore();
@@ -34,12 +40,31 @@ export const buildContainer = () => {
   const invoiceReadRepo = new InMemoryInvoiceReadRepository();
   const walletRepo = new InMemoryWalletRepository();
   const walletProjectionRepo = new InMemoryWalletProjectionRepository();
+  const tenantContextStore = new TenantContextStore();
+  const telemetry = new ConsoleTelemetry();
+  const outboxRepository = new InMemoryOutboxRepository();
+  const externalBroker = new KafkaBrokerAdapter();
+  const outboxWorker = new OutboxRelayWorker(outboxRepository, externalBroker);
+
 
   const invoiceProjection = new InvoiceProjectionHandler(invoiceReadRepo);
   const walletProjection = new WalletProjectionHandler(walletProjectionRepo);
 
   ['InvoiceCreated', 'InvoiceIssued', 'PaymentRegistered'].forEach((eventType) => {
+    eventBus.subscribe(eventType, async (evt) => {
+      await invoiceProjection.onEvent(evt);
+      await outboxRepository.enqueue({
+        id: evt.eventId,
+        topic: evt.eventType,
+        payload: evt.payload,
+        attempts: 0,
+        status: 'PENDING',
+        createdAt: new Date().toISOString()
+      });
+    });
+
     eventBus.subscribe(eventType, (evt) => invoiceProjection.onEvent(evt));
+
   });
 
   ['WalletOpened', 'FundsDeposited', 'FundsReserved', 'PaymentSettled'].forEach((eventType) => {
@@ -49,11 +74,21 @@ export const buildContainer = () => {
   return {
     eventStore,
     eventBus,
+
+    telemetry,
+    tenantContextStore,
+    outboxWorker,
+
     repositories: {
       customerRepo,
       invoiceReadRepo,
       walletRepo,
+
+      walletProjectionRepo,
+      outboxRepository
+
       walletProjectionRepo
+
     },
     commands: {
       createCustomer: new CreateCustomerHandler(customerRepo),

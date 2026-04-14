@@ -72,6 +72,9 @@ These diagrams show:
 - [ADR-003 In-process bus](docs/adr/ADR-003-in-process-bus.md)
 - [ADR-004 Eventually consistent projections](docs/adr/ADR-004-eventual-consistency-projections.md)
 
+- [ADR-005 Production hardening scaffolding](docs/adr/ADR-005-production-hardening-roadmap.md)
+
+
 ## Run
 ```bash
 npm install
@@ -122,3 +125,13 @@ docs/{adr,diagrams}
 - external broker adapter (Kafka/RabbitMQ)
 - authn/authz and tenant isolation
 - distributed tracing and metrics
+
+
+## Production-readiness scaffolding added
+- `.gitignore` now excludes `dist/`, `node_modules/`, coverage and local env files to avoid noisy commits.
+- Added `PostgresEventStore` scaffold (`src/shared/infrastructure/postgres/postgres-event-store.ts`) to show the next step for durable event streams/read models.
+- Added outbox abstractions and worker (`OutboxRepository`, `OutboxRelayWorker`, in-memory repo, `npm run worker:outbox`) for reliable event delivery patterns.
+- Added external broker adapter interface with Kafka and RabbitMQ adapter stubs for migration from in-process bus.
+- Added request middleware for API key auth + tenant context headers (`x-api-key`, `x-tenant-id`) to demonstrate authn/authz + tenant isolation boundaries.
+- Added telemetry interfaces and console implementations for tracing/metrics hooks on HTTP request lifecycle.
+

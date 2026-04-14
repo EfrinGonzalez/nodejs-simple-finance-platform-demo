@@ -18,7 +18,9 @@ export class CreateCustomerHandler {
       name: command.name,
       email: command.email
     });
+
     await this.customerRepository.save({ ...command });
+
   }
 }
 

@@ -12,6 +12,12 @@ export class CreateCustomerHandler {
   constructor(private readonly customerRepository: CustomerRepository) {}
 
   async execute(command: CreateCustomerCommand): Promise<void> {
+    await this.customerRepository.save({
+      id: command.customerId,
+      businessId: command.businessId,
+      name: command.name,
+      email: command.email
+    });
     await this.customerRepository.save({ ...command });
   }
 }
